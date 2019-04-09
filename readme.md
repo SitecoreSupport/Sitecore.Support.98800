@@ -1,5 +1,5 @@
 # Sitecore.Support.98800
-Inefficient porcessing of expired sessions
+Inefficient processing of expired sessions
 
 ## License  
 This patch is licensed under the [Sitecore Corporation A/S License for GitHub](https://github.com/sitecoresupport/Sitecore.Support.98800/blob/master/LICENSE).  
