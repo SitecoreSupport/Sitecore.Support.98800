@@ -14,6 +14,27 @@ namespace Sitecore.Support.SessionProvider
 
     private readonly object syncRoot = new object();
 
+    /// <summary>
+    /// Delegate if concrete provider needs to control the timer
+    /// </summary>
+    protected Func<bool> CanStartTimer;
+
+    /// <summary>
+    /// Flag to identify if the instance tried to start the timer
+    /// </summary>
+    public bool TriedToStartTimer { get; private set; }
+
+    /// <summary>
+    /// Get the timer status and start if needed
+    /// </summary>
+    public bool TimerEnabled
+    {
+      get
+      {
+        return this.timer != null && this.timer.Enabled;
+      }
+    }
+
     private bool isProcessing;
 
     private volatile Timer timer;
@@ -31,6 +52,13 @@ namespace Sitecore.Support.SessionProvider
       this.timer = new Timer();
       this.timer.AutoReset = true;
       this.timer.Elapsed += this.OnProcessExpiredItems;
+      this.TriedToStartTimer = false;
+    }
+
+    public void StartTimer()
+    {
+      if (this.timer != null)
+        this.timer.Start();
     }
 
     public override void Dispose()
@@ -58,7 +86,11 @@ namespace Sitecore.Support.SessionProvider
 
       if (expireCallback != null)
       {
-        this.timer.Start();
+        this.TriedToStartTimer = true;
+        if (this.CanStartTimer == null || this.CanStartTimer())
+        {
+          this.StartTimer();
+        }
         return true;
       }
 

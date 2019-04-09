@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Configuration;
 using System.Diagnostics;
@@ -15,6 +16,16 @@ namespace Sitecore.Support.SessionProvider.Sql
     private Guid m_ApplicationId;
 
     private SqlSessionStateStore m_Store;
+
+    /// <summary>
+    /// List to store all the instances of this class
+    /// </summary>
+    private static readonly List<SqlSessionStateProvider> SqlSessionStateProvidersList = new List<SqlSessionStateProvider>();
+
+    /// <summary>
+    /// Lock object
+    /// </summary>
+    private static readonly object ListSyncRoot = new object();
 
     static SqlSessionStateProvider()
     {
@@ -129,6 +140,50 @@ namespace Sitecore.Support.SessionProvider.Sql
 
       this.m_Store = new SqlSessionStateStore(connectionString, compression);
       this.m_ApplicationId = this.m_Store.GetApplicationIdentifier(applicationName);
+      lock (ListSyncRoot)
+      {
+        SqlSessionStateProvidersList.Add(this);
+      }
+      this.CanStartTimer = this.isTimerOffForAllInstance;
+    }
+
+    private bool isTimerOffForAllInstance()
+    {
+      lock (ListSyncRoot)
+      {
+        foreach (var sqlSessionStateProvider in SqlSessionStateProvidersList)
+        {
+          if (sqlSessionStateProvider.ApplicationId == this.ApplicationId &&
+              sqlSessionStateProvider.TriedToStartTimer &&
+              sqlSessionStateProvider.TimerEnabled)
+            return false;
+        }
+        return true;
+      }
+    }
+
+    /// <summary>
+    /// Releases managed and unmanaged resources.
+    /// </summary>
+    public override void Dispose()
+    {
+      lock (ListSyncRoot)
+      {
+        SqlSessionStateProvidersList.Remove(this);
+        if (this.TimerEnabled && SqlSessionStateProvidersList.Count > 0)
+        {
+          foreach (var sqlSessionStateProvider in SqlSessionStateProvidersList)
+          {
+            if (sqlSessionStateProvider.ApplicationId == this.ApplicationId &&
+                sqlSessionStateProvider.TriedToStartTimer)
+            {
+              sqlSessionStateProvider.StartTimer();
+              break;
+            }
+          }
+        }
+      }
+      base.Dispose();
     }
 
     public override void ReleaseItemExclusive([NotNull] HttpContext context, string id, object lockId)
