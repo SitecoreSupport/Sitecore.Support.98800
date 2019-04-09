@@ -46,7 +46,16 @@
       <HintPath>..\packages\SC.Sitecore.Kernel.8.1.3\lib\Sitecore.Kernel.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Sitecore.SessionProvider, Version=8.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SC.Sitecore.SessionProvider.8.1.3\lib\Sitecore.SessionProvider.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Sitecore.SessionProvider.Sql, Version=8.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SC.Sitecore.SessionProvider.Sql.8.1.3\lib\Sitecore.SessionProvider.Sql.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
@@ -54,6 +63,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SessionProvider\Sql\SqlSessionStateProvider.cs" />
+    <Compile Include="SessionProvider\Sql\SqlSessionStateStore.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
